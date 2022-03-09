@@ -26,4 +26,3 @@ my-server
 
 # Run it
 `multissh /etc/turbolab.it/multissh-server-list.txt /usr/local/turbolab.it/multissh/sample-script.sh`
---
