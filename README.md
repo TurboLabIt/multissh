@@ -25,4 +25,4 @@ my-server
 ````
 
 # Run it
-`sudo multissh /etc/turbolab.it/multissh-server-list.txt /usr/local/turbolab.it/multissh/sample-script.sh`
+`multissh /etc/turbolab.it/multissh-server-list.txt /usr/local/turbolab.it/multissh/sample-script.sh`
