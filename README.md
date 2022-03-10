@@ -9,7 +9,7 @@ Just execute:
 `sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt/multissh/master/setup.sh?$(date +%s) | sudo bash`
 
 # Create the hosts list
-`nano /etc/turbolab.it/multissh-server-list.txt`
+`sudo nano /etc/turbolab.it/multissh-server-list.txt`
 
 List example:
 
