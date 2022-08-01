@@ -45,7 +45,7 @@ while read -r line || [[ -n "$line" ]]; do
       ssh -tt ${line} 'echo -e "\e[1;43m Running as ${MSSH_REMOTE_RUN_AS_USERNAME} \e[0m"' </dev/null
       echo ""
     
-      ssh -tt ${line} "sudo -u \"${MSSH_REMOTE_RUN_AS_USERNAME}\" -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      echo ssh -tt ${line} "sudo -u \"${MSSH_REMOTE_RUN_AS_USERNAME}\" -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
     fi
     
     echo ""
