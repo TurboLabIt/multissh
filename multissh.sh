@@ -37,18 +37,17 @@ while read -r line || [[ -n "$line" ]]; do
 
     echo -e "\e[1;44m Running the remote script... \e[0m"
     if [ -z "$MSSH_REMOTE_RUN_AS_USERNAME" ]; then
-    
+
       ssh -tt ${line} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
-      
+
     else
-    
-      #ssh -tt ${line} 'echo -e "\e[1;43m Running as ## $(whoami) ## \e[0m"' </dev/null
-      ssh -tt ${line} 'echo "Running as ${MSSH_REMOTE_RUN_AS_USERNAME} oooooo"' </dev/null
+
+      ssh -tt ${line} "echo -e \"\e[1;43m Running as ${MSSH_REMOTE_RUN_AS_USERNAME} \e[0m\"" </dev/null
       echo ""
-    
-      echo ssh -tt ${line} "sudo -u ${MSSH_REMOTE_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+
+      ssh -tt ${line} "sudo -u ${MSSH_REMOTE_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
     fi
-    
+
     echo ""
 
     echo -e "\e[1;44m Remove the script from remote \e[0m"
