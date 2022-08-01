@@ -13,7 +13,7 @@ fi
 
 if [ ! -f "${MSSH_SCRIPT_LOCAL_FILE}" ]; then
 
-  echo -e "\e[1;41m ERROR! Script file ##${MSSH_TARGET_HOSTS_LOCAL_FILE}## NOT FOUND! \e[0m"
+  echo -e "\e[1;41m ERROR! Script file ##${MSSH_SCRIPT_LOCAL_FILE}## NOT FOUND! \e[0m"
   exit
 fi
 
