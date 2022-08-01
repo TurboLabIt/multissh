@@ -3,6 +3,7 @@ echo ""
 
 MSSH_TARGET_HOSTS_LOCAL_FILE=$1
 MSSH_SCRIPT_LOCAL_FILE=$2
+MSSH_REMOTE_RUN_AS_USERNAME=$3
 
 if [ ! -f "${MSSH_TARGET_HOSTS_LOCAL_FILE}" ]; then
 
@@ -35,7 +36,15 @@ while read -r line || [[ -n "$line" ]]; do
     echo ""
 
     echo -e "\e[1;44m Running the remote script... \e[0m"
-    ssh -tt ${line} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+    if [ -z "$MSSH_REMOTE_RUN_AS_USERNAME" ]; then
+    
+      ssh -tt ${line} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      
+    else
+    
+      ssh -tt ${line} "sudo -u \"${MSSH_REMOTE_RUN_AS_USERNAME}\" - H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+    fi
+    
     echo ""
 
     echo -e "\e[1;44m Remove the script from remote \e[0m"
