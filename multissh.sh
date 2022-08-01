@@ -42,7 +42,7 @@ while read -r line || [[ -n "$line" ]]; do
       
     else
     
-      ssh -tt ${line} 'echo -e "\e[1;43m Running as ## $(echo $MSSH_SCRIPT_REMOTE_FILE) ## \e[0m"' </dev/null
+      ssh -tt ${line} 'echo -e "\e[1;43m Running as ## $(whoami) ## \e[0m"' </dev/null
       echo ""
     
       echo ssh -tt ${line} "sudo -u ${MSSH_REMOTE_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
