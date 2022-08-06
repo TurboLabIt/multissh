@@ -70,3 +70,12 @@ multissh default /my-dir/prod-server-list.txt /usr/local/turbolab.it/multissh/sc
 
 ````
 
+# Inventory collection
+
+To collect the OS in use and some other infos about you server run this:
+
+````bash
+/usr/local/turbolab.it/multissh/scripts/config-collector.sh default /my-dir/prod-server-list.txt
+````
+
+You'll get a pipe-separated CSV as `/var/log/turbolab.it/multissh-config-collector.csv`
