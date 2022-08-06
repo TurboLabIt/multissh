@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+REPORT_LOG_DIR=/var/log/turbolab.it/
+mkdir -p ${REPORT_LOG_DIR}
+REPORT_LOG_FILE=${REPORT_LOG_DIR}multissh-config-collector.csv
+>${REPORT_LOG_FILE}
+
+function addToReport()
+{
+  PARAM_NAME=$1
+  PARAM_VALUE=$2
+  NO_PIPE=$3
+
+  echo "$PARAM_NAME: $PARAM_VALUE"
+  echo -n "$PARAM_VALUE" >> ${REPORT_LOG_FILE}
+  if [ -z "$NO_PIPE" ]; then
+    echo -n "|" >> ${REPORT_LOG_FILE}
+  fi
+}
+
+## report date
+addToReport 'coll_date' $(date +%F)
+
+## hostname
+addToReport 'hostname' $(hostname)
+
+## Linux distribution name
+REPORT_OS=$(grep '^ID=' /etc/os-release)
+REPORT_OS=${REPORT_OS:3}
+REPORT_OS=${REPORT_OS//\"}
+addToReport 'os' $REPORT_OS
+
+## Linux distribution version
+REPORT_OS_VERSION=$(grep '^VERSION_ID=' /etc/os-release)
+REPORT_OS_VERSION=${REPORT_OS_VERSION:11}
+REPORT_OS_VERSION=${REPORT_OS_VERSION//\"}
+addToReport 'os_version' $REPORT_OS_VERSION
+
+## zzfirewall
+ZZFIREWALL_DIR=/usr/local/turbolab.it/zzfirewall/
+if [ -d "${ZZFIREWALL_DIR}" ]; then
+  REPORT_ZZFIREWALL='Y'
+else
+  REPORT_ZZFIREWALL='N'
+fi
+
+addToReport 'zzfirewall' $REPORT_ZZFIREWALL
+
+## webstackup
+WEBSTACKUP_DIR=/usr/local/turbolab.it/webstackup/
+WEBSTACKUP_CONFIG=/etc/turbolab.it/webstackup.conf
+if [ -d "${WEBSTACKUP_DIR}" ] && [ -f "${WEBSTACKUP_CONFIG}" ]; then
+  REPORT_WEBSTACKUP='Y'
+else
+  REPORT_WEBSTACKUP='N'
+fi
+
+addToReport 'webstackup' $REPORT_WEBSTACKUP
+
+## private generics
+PRIVGEN_DIR=/var/www/private_generics/
+if [ -d "${PRIVGEN_DIR}" ]; then
+  REPORT_PRIV_GEN='Y'
+else
+  REPORT_PRIV_GEN='N'
+fi
+
+addToReport 'priv_gen' $REPORT_PRIV_GEN
+

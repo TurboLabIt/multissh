@@ -36,7 +36,6 @@ function sectionText()
   echo -e "\e[1;33m${1}\e[0m"
 }
 
-
 echo ""
 while read -r line || [[ -n "$line" ]]; do
 
@@ -73,6 +72,11 @@ while read -r line || [[ -n "$line" ]]; do
     sectionText "Remove the script from remote..."
     ssh -tt ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
     echo ""
+    
+    if [ ! -z "${MSSH_POST_EXEC_SCRIPT}" ]; then
+      sectionText "Running the post-exec script..."
+      bash "${MSSH_POST_EXEC_SCRIPT}" ${MSSH_REMOTE_LOGIN_USERNAME} ${line} "$MSSH_TARGET_HOSTS_LOCAL_FILE" ${MSSH_REMOTE_RUN_AS_USERNAME}
+    fi
 
     fxOK "======= MULTISSH ON ${line} is DONE ======="
     echo ""
