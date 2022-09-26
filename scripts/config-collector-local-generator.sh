@@ -11,11 +11,12 @@ function sectionText()
   echo -e "\e[1;33m${1}\e[0m"
 }
 
-REPORT_FILE=/tmp/inventory.csv
+REPORT_REMOTE_FILE=/var/log/turbolab.it/multissh-config-collector.csv
+REPORT_LOCAL_FILE=/tmp/inventory.csv
 
 sectionText "Collecting..."
-echo -n "${MSSH_REMOTE_HOST}|${MSSH_TARGET_HOSTS_LOCAL_FILE}|" >> "${REPORT_FILE}"
-scp ${MSSH_USER_AT_HOST}:${REPORT_FILE} /tmp/multissh-collector
-cat /tmp/multissh-collector >> "${REPORT_FILE}"
+echo -n "${MSSH_REMOTE_HOST}|${MSSH_TARGET_HOSTS_LOCAL_FILE}|" >> "${REPORT_LOCAL_FILE}"
+scp ${MSSH_USER_AT_HOST}:${REPORT_REMOTE_FILE} /tmp/multissh-collector
+cat /tmp/multissh-collector >> "${REPORT_LOCAL_FILE}"
 rm -f /tmp/multissh-collector
-echo ""  >> "${REPORT_FILE}"
+echo ""  >> "${REPORT_LOCAL_FILE}"
