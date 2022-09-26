@@ -22,4 +22,8 @@ sed -i '/^$/d' ${REPORT_LOCAL_FILE}
 
 MSSH_POST_EXEC_SCRIPT="${SCRIPT_DIR}config-collector-local-generator.sh" \
   multissh ${MSSH_PROFILE} ${MSSH_TARGET_HOSTS_LOCAL_FILE} "/usr/local/turbolab.it/multissh/scripts/config-collector-remote.sh"
+  
+fxTitle "You report is ready!"
+fxMessage "${REPORT_LOCAL_FILE}"
 
+fxEndFooter
