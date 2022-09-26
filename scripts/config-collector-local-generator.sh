@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 echo ""
 
-source "${SCRIPT_DIR}base.sh"
+source /usr/local/turbolab.it/multissh/scripts/base.sh
 
 MSSH_REMOTE_LOGIN_USERNAME=$1
 MSSH_REMOTE_HOST=$2
