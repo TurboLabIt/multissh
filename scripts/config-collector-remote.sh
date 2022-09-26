@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-REPORT_LOG_DIR=/var/log/turbolab.it/
-mkdir -p ${REPORT_LOG_DIR}
-REPORT_LOG_FILE=${REPORT_LOG_DIR}multissh-config-collector.csv
->${REPORT_LOG_FILE}
+REPORT_REMOTE_DIR=/var/log/turbolab.it/
+REPORT_REMOTE_FILE=${REPORT_REMOTE_DIR}multissh-config-collector.csv
+
+mkdir -p "${REPORT_REMOTE_DIR}"
+>${REPORT_REMOTE_FILE}
 
 function addToReport()
 {
@@ -12,9 +13,9 @@ function addToReport()
   NO_PIPE=$3
 
   echo "$PARAM_NAME: $PARAM_VALUE"
-  echo -n "$PARAM_VALUE" >> ${REPORT_LOG_FILE}
+  echo -n "$PARAM_VALUE" >> ${REPORT_REMOTE_FILE}
   if [ -z "$NO_PIPE" ]; then
-    echo -n "|" >> ${REPORT_LOG_FILE}
+    echo -n "|" >> ${REPORT_REMOTE_FILE}
   fi
 }
 
@@ -66,4 +67,3 @@ else
 fi
 
 addToReport 'priv_gen' $REPORT_PRIV_GEN
-
