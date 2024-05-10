@@ -37,6 +37,11 @@ REPORT_OS_VERSION=${REPORT_OS_VERSION:11}
 REPORT_OS_VERSION=${REPORT_OS_VERSION//\"}
 addToReport 'os_version' $REPORT_OS_VERSION
 
+## PHP versions
+REPORT_PHP_VERSION=$(ls /usr/bin/php*)
+REPORT_PHP_VERSION=$(echo $REPORT_PHP_VERSION | grep -o 'php[0-9]\+\.[0-9]\+' | sed 's/php//g' | tr ' ' ',')
+addToReport 'php_versions' $REPORT_PHP_VERSION
+
 ## zzfirewall
 ZZFIREWALL_DIR=/usr/local/turbolab.it/zzfirewall/
 if [ -d "${ZZFIREWALL_DIR}" ]; then
