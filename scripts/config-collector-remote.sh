@@ -29,18 +29,18 @@ addToReport 'hostname' $(hostname)
 REPORT_OS=$(grep '^ID=' /etc/os-release)
 REPORT_OS=${REPORT_OS:3}
 REPORT_OS=${REPORT_OS//\"}
-addToReport 'os' $REPORT_OS
+addToReport 'os' "$REPORT_OS"
 
 ## Linux distribution version
 REPORT_OS_VERSION=$(grep '^VERSION_ID=' /etc/os-release)
 REPORT_OS_VERSION=${REPORT_OS_VERSION:11}
 REPORT_OS_VERSION=${REPORT_OS_VERSION//\"}
-addToReport 'os_version' $REPORT_OS_VERSION
+addToReport 'os_version' "$REPORT_OS_VERSION"
 
 ## PHP versions
 REPORT_PHP_VERSION=$(ls /usr/bin/php*)
 REPORT_PHP_VERSION=$(echo $REPORT_PHP_VERSION | grep -o 'php[0-9]\+\.[0-9]\+' | sed 's/php//g' | tr ' ' ',')
-addToReport 'php_versions' $REPORT_PHP_VERSION
+addToReport 'php_versions' "$REPORT_PHP_VERSION"
 
 ## zzfirewall
 ZZFIREWALL_DIR=/usr/local/turbolab.it/zzfirewall/
