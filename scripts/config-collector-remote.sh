@@ -39,7 +39,7 @@ addToReport 'os_version' "$REPORT_OS_VERSION"
 
 ## PHP versions
 REPORT_PHP_VERSION=$(ls /usr/bin/php*)
-REPORT_PHP_VERSION=$(echo $REPORT_PHP_VERSION | grep -o 'php[0-9]\+\.[0-9]\+' | sed 's/php//g' | tr ' ' ',')
+REPORT_PHP_VERSION=$(echo $REPORT_PHP_VERSION | grep -o 'php[0-9]\+\.[0-9]\+' | sed -e 's/php//g' -e 's/[\t ]\+/,/g')
 echo "--- $REPORT_PHP_VERSION ---"
 addToReport 'php_versions' "$REPORT_PHP_VERSION"
 
