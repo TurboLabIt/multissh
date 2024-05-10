@@ -40,7 +40,6 @@ addToReport 'os_version' "$REPORT_OS_VERSION"
 ## PHP versions
 REPORT_PHP_VERSION=$(ls /usr/bin/php*)
 REPORT_PHP_VERSION=$(echo $REPORT_PHP_VERSION | sed -n 's/[^0-9]*\([0-9]\+\.[0-9]\+\)[^0-9]*/\1,/gp' | sed 's/,$//')
-echo "--- $REPORT_PHP_VERSION ---"
 addToReport 'php_versions' "$REPORT_PHP_VERSION"
 
 ## zzfirewall
