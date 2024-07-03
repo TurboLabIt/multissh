@@ -39,7 +39,7 @@ addToReport 'os_version' "$REPORT_OS_VERSION"
 
 ## SSH version
 REPORT_SSH_VERSION=$(ssh -V)
-addToReport 'ssh_version' "REPORT_SSH_VERSION"
+addToReport 'ssh_version' "$REPORT_SSH_VERSION"
 
 ## PHP versions
 REPORT_PHP_VERSION=$(ls /usr/bin/php*)
