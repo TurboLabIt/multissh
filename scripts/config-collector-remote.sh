@@ -37,6 +37,10 @@ REPORT_OS_VERSION=${REPORT_OS_VERSION:11}
 REPORT_OS_VERSION=${REPORT_OS_VERSION//\"}
 addToReport 'os_version' "$REPORT_OS_VERSION"
 
+## SSH version
+REPORT_SSH_VERSION=$(ssh -V)
+addToReport 'ssh_version' "REPORT_SSH_VERSION"
+
 ## PHP versions
 REPORT_PHP_VERSION=$(ls /usr/bin/php*)
 REPORT_PHP_VERSION=$(echo $REPORT_PHP_VERSION | sed -n 's/[^0-9]*\([0-9]\+\.[0-9]\+\)[^0-9]*/\1,/gp' | sed 's/,$//')
