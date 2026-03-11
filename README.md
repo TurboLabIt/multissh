@@ -8,7 +8,7 @@ A simple command to run a local `script.sh` on multiple remote hosts.
 # Install / update
 
 ````bash
-sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt/multissh/master/setup.sh?$(date +%s) | sudo bash
+sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt/multissh/master/setup.sh | sudo bash
 
 ````
 
