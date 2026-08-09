@@ -117,7 +117,15 @@ while read -r line || [[ -n "$line" ]]; do
     echo ""
 
     ssh -tt ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"' </dev/null
+    MSSH_SSH_EXIT_CODE=$?
     echo ""
+
+    if [ "$MSSH_SSH_EXIT_CODE" != 0 ]; then
+
+      fxCatastrophicError "SSH connection to ##${MSSH_USER_AT_HOST}## FAILED with exit code ##${MSSH_SSH_EXIT_CODE}##!" no-exit
+      echo ""
+      continue
+    fi
 
     MSSH_SCRIPT_REMOTE_FILE=/tmp/mssh-script-to-execute.sh
     sectionText "Uploading to ${MSSH_USER_AT_HOST}:${MSSH_SCRIPT_REMOTE_FILE}"
