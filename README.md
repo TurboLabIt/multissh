@@ -9,7 +9,6 @@ A simple command to run a local `script.sh` on multiple remote hosts.
 
 ````bash
 sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt/multissh/master/setup.sh | sudo bash
-
 ````
 
 
@@ -17,7 +16,6 @@ Now copy the provided sample configuration file (`multissh.default.conf`) to you
 
 ````bash
 sudo cp /usr/local/turbolab.it/multissh/multissh.default.conf /etc/turbolab.it/multissh.conf && sudo nano /etc/turbolab.it/multissh.conf
-
 ````
 
 ⚠️⚠️ You should only set GLOBAL values here! Create a dedicated profile file (see below) for each different serverlist/operation.
@@ -27,7 +25,6 @@ sudo cp /usr/local/turbolab.it/multissh/multissh.default.conf /etc/turbolab.it/m
 
 ````bash
 sudo nano /etc/turbolab.it/multissh-staging.txt
-
 ````
 
 List example:
@@ -42,7 +39,23 @@ my-server.com
 ## a .ssh/config host
 my-server
 
+## SSH login as "zane"
+zane@my-server.com
+
+## SSH login as "zane", then run the script as "www-data"
+zane@www-data@my-server.com
+
 ````
+
+Each entry can override the profile defaults:
+
+| entry                    | SSH login                     | remote run-as                  |
+|--------------------------|-------------------------------|--------------------------------|
+| `host`                   | `MSSH_REMOTE_LOGIN_USERNAME`  | `MSSH_REMOTE_RUN_AS_USERNAME`  |
+| `login@host`             | `login`                       | `MSSH_REMOTE_RUN_AS_USERNAME`  |
+| `login@runas@host`       | `login`                       | `runas`                        |
+
+Leave `MSSH_REMOTE_LOGIN_USERNAME` empty to let `~/.ssh/config` pick the username, and `MSSH_REMOTE_RUN_AS_USERNAME` empty to run the script as the SSH login user itself (no `sudo`).
 
 
 # Run it
@@ -51,7 +64,6 @@ To run the profile named `staging`:
 
 ````bash
 multissh staging
-
 ````
 
 
@@ -59,7 +71,6 @@ To run the profile named `staging` but on a different serverlist and/or a differ
 
 ````bash
 multissh staging /my-dir/prod-server-list.txt /usr/local/turbolab.it/multissh/scripts/test-access-remote
-
 ````
 
 
@@ -67,7 +78,6 @@ To run without a profile file:
 
 ````bash
 multissh default /my-dir/prod-server-list.txt /usr/local/turbolab.it/multissh/scripts/test-access-remote
-
 ````
 
 # Inventory collection
