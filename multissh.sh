@@ -86,6 +86,35 @@ function msshParseTarget()
 }
 
 
+##
+## Check the exit code of the last remote command.
+## On failure: complain, flag the current host as failed and return non-zero,
+## so that the caller can "|| continue" to the next host when it makes no sense
+## to keep working on this one.
+##
+function msshCheckExitCode()
+{
+  local EXIT_CODE="$1"
+  local WHAT="$2"
+
+  if [ "$EXIT_CODE" = 0 ]; then
+    return 0
+  fi
+
+  fxCatastrophicError "${WHAT} ##${MSSH_USER_AT_HOST}## FAILED!" no-exit
+  echo ""
+
+  ## the host is listed once, no matter how many of its commands failed
+  if [ "$MSSH_HOST_HAS_FAILED" != "true" ]; then
+
+    MSSH_HOST_HAS_FAILED=true
+    MSSH_FAILED_HOSTS+=("$MSSH_USER_AT_HOST")
+  fi
+
+  return 1
+}
+
+
 fxTitle "Target hosts: "
 while read -r line || [[ -n "$line" ]]; do
 
@@ -106,62 +135,85 @@ done < "$MSSH_TARGET_HOSTS_LOCAL_FILE"
 
 
 echo ""
+MSSH_FAILED_HOSTS=()
 while read -r line || [[ -n "$line" ]]; do
 
   FIRSTCHAR="${line:0:1}"
   if [ "$FIRSTCHAR" != "#" ] && [ "$FIRSTCHAR" != "" ]; then
 
     msshParseTarget "$line"
+    MSSH_HOST_HAS_FAILED=false
 
     echo -e "\e[1;43m🏁 ======= MULTISSH ON ${MSSH_HOST} is RUNNING =======\e[0m"
     echo ""
 
     ssh -tt ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"' </dev/null
-    MSSH_SSH_EXIT_CODE=$?
+    MSSH_EXIT_CODE=$?
     echo ""
-
-    if [ "$MSSH_SSH_EXIT_CODE" != 0 ]; then
-
-      fxCatastrophicError "SSH connection to ##${MSSH_USER_AT_HOST}## FAILED with exit code ##${MSSH_SSH_EXIT_CODE}##!" no-exit
-      echo ""
-      continue
-    fi
+    msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
 
     MSSH_SCRIPT_REMOTE_FILE=/tmp/mssh-script-to-execute.sh
     sectionText "Uploading to ${MSSH_USER_AT_HOST}:${MSSH_SCRIPT_REMOTE_FILE}"
     scp "$MSSH_SCRIPT_LOCAL_FILE" ${MSSH_USER_AT_HOST}:"${MSSH_SCRIPT_REMOTE_FILE}"
+    MSSH_EXIT_CODE=$?
     echo ""
+
+    ## never run the script if the upload failed: an old copy could still be there!
+    msshCheckExitCode $MSSH_EXIT_CODE "Script upload to" || continue
 
     if [ -z "$MSSH_HOST_RUN_AS_USERNAME" ]; then
 
       ssh -tt ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning the remote script as $(whoami) \e[0m"' </dev/null
+      msshCheckExitCode $? "SSH connection to" || continue
+
       ssh -tt ${MSSH_USER_AT_HOST} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      MSSH_EXIT_CODE=$?
 
     else
 
       ssh -tt ${MSSH_USER_AT_HOST} "echo -e \"\e[1;33mRunning the remote script as ${MSSH_HOST_RUN_AS_USERNAME} \e[0m\"" </dev/null
+      MSSH_EXIT_CODE=$?
       echo ""
+      msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
 
       ssh -tt ${MSSH_USER_AT_HOST} "sudo -u ${MSSH_HOST_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      MSSH_EXIT_CODE=$?
     fi
 
     echo ""
 
+    ## the script failed, but the remote cleanup is still worth a try
+    msshCheckExitCode $MSSH_EXIT_CODE "Remote script execution on"
+
     sectionText "Remove the script from remote..."
     ssh -tt ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+    MSSH_EXIT_CODE=$?
     echo ""
+    msshCheckExitCode $MSSH_EXIT_CODE "Remote script cleanup on"
 
     if [ ! -z "${MSSH_POST_EXEC_SCRIPT}" ]; then
       sectionText "Running the post-exec script..."
       bash "${MSSH_POST_EXEC_SCRIPT}" "${MSSH_HOST_LOGIN_USERNAME}" "${MSSH_HOST}" "$MSSH_TARGET_HOSTS_LOCAL_FILE" "${MSSH_HOST_RUN_AS_USERNAME}"
     fi
 
-    fxOK "======= MULTISSH ON ${MSSH_HOST} is DONE ======="
+    if [ "$MSSH_HOST_HAS_FAILED" = "true" ]; then
+      fxWarning "======= MULTISSH ON ${MSSH_HOST} is DONE, WITH ERRORS ======="
+    else
+      fxOK "======= MULTISSH ON ${MSSH_HOST} is DONE ======="
+    fi
+
     echo ""
 
   fi
 
 done < "$MSSH_TARGET_HOSTS_LOCAL_FILE"
+
+
+if [ ${#MSSH_FAILED_HOSTS[@]} -gt 0 ]; then
+
+  fxTitle "😱 Something FAILED on ${#MSSH_FAILED_HOSTS[@]} host(s):"
+  printf '%s\n' "${MSSH_FAILED_HOSTS[@]}"
+fi
 
 fxEndFooter
 
