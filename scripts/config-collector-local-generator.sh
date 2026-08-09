@@ -6,10 +6,16 @@ source /usr/local/turbolab.it/multissh/scripts/base.sh
 MSSH_REMOTE_LOGIN_USERNAME=$1
 MSSH_REMOTE_HOST=$2
 MSSH_TARGET_HOSTS_LOCAL_FILE=$(basename $3)
+MSSH_REMOTE_PORT=$5
 
 MSSH_USER_AT_HOST="${MSSH_REMOTE_HOST}"
 if [ ! -z "$MSSH_REMOTE_LOGIN_USERNAME" ]; then
   MSSH_USER_AT_HOST="${MSSH_REMOTE_LOGIN_USERNAME}@${MSSH_REMOTE_HOST}"
+fi
+
+MSSH_SCP_PORT_OPTION=
+if [ ! -z "$MSSH_REMOTE_PORT" ]; then
+  MSSH_SCP_PORT_OPTION="-P ${MSSH_REMOTE_PORT}"
 fi
 
 function sectionText()
@@ -19,7 +25,7 @@ function sectionText()
 
 sectionText "Collecting..."
 echo -n "${MSSH_REMOTE_HOST}|${MSSH_TARGET_HOSTS_LOCAL_FILE}|" >> "${REPORT_LOCAL_FILE}"
-scp ${MSSH_USER_AT_HOST}:${REPORT_REMOTE_FILE} /tmp/multissh-collector
+scp ${MSSH_SCP_PORT_OPTION} ${MSSH_USER_AT_HOST}:${REPORT_REMOTE_FILE} /tmp/multissh-collector
 cat /tmp/multissh-collector >> "${REPORT_LOCAL_FILE}"
 rm -f /tmp/multissh-collector
 echo ""  >> "${REPORT_LOCAL_FILE}"

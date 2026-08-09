@@ -45,6 +45,10 @@ zane@my-server.com
 ## SSH login as "zane", then run the script as "www-data"
 zane@www-data@my-server.com
 
+## SSH on port 2222
+my-server.com:2222
+zane@www-data@my-server.com:2222
+
 ````
 
 Each entry can override the profile defaults:
@@ -56,6 +60,8 @@ Each entry can override the profile defaults:
 | `login@runas@host`       | `login`                       | `runas`                        |
 
 Leave `MSSH_REMOTE_LOGIN_USERNAME` empty to let `~/.ssh/config` pick the username, and `MSSH_REMOTE_RUN_AS_USERNAME` empty to run the script as the SSH login user itself (no `sudo`).
+
+Any host can also carry a `:port` suffix (`my-server.com:2222`). Without it, the port is left to `ssh` and to your `~/.ssh/config`.
 
 
 # Run it

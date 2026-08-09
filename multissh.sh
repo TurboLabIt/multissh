@@ -41,6 +41,7 @@ function sectionText()
 ## Read a target hosts list entry and set the values to use for it.
 ## Accepted formats: "host", "login@host", "login@runas@host".
 ## The missing usernames fall back to the profile defaults.
+## Every host can carry a ":port" suffix (default: let ssh decide).
 ##
 function msshParseTarget()
 {
@@ -50,6 +51,7 @@ function msshParseTarget()
 
   MSSH_HOST_LOGIN_USERNAME="$MSSH_REMOTE_LOGIN_USERNAME"
   MSSH_HOST_RUN_AS_USERNAME="$MSSH_REMOTE_RUN_AS_USERNAME"
+  MSSH_HOST_PORT=
 
   case ${#SEPARATORS} in
 
@@ -78,10 +80,29 @@ function msshParseTarget()
     fxCatastrophicError "Invalid target ##${TARGET}##! The hostname is missing"
   fi
 
+  ## "host:port" (an IPv6 address, with its own colons, is left alone)
+  MSSH_SSH_PORT_OPTION=
+  MSSH_SCP_PORT_OPTION=
+  if [[ "$MSSH_HOST" =~ ^([^:]+):([0-9]+)$ ]]; then
+
+    MSSH_HOST="${BASH_REMATCH[1]}"
+    MSSH_HOST_PORT="${BASH_REMATCH[2]}"
+
+    ## lowercase -p for ssh, uppercase -P for scp!
+    MSSH_SSH_PORT_OPTION="-p ${MSSH_HOST_PORT}"
+    MSSH_SCP_PORT_OPTION="-P ${MSSH_HOST_PORT}"
+  fi
+
   ## no login username at all => let ~/.ssh/config decide
   MSSH_USER_AT_HOST="${MSSH_HOST}"
   if [ ! -z "$MSSH_HOST_LOGIN_USERNAME" ]; then
     MSSH_USER_AT_HOST="${MSSH_HOST_LOGIN_USERNAME}@${MSSH_HOST}"
+  fi
+
+  ## the port doesn't belong to the ssh destination: keep it for the messages only
+  MSSH_TARGET_LABEL="$MSSH_USER_AT_HOST"
+  if [ ! -z "$MSSH_HOST_PORT" ]; then
+    MSSH_TARGET_LABEL="${MSSH_USER_AT_HOST}:${MSSH_HOST_PORT}"
   fi
 }
 
@@ -101,14 +122,14 @@ function msshCheckExitCode()
     return 0
   fi
 
-  fxCatastrophicError "${WHAT} ##${MSSH_USER_AT_HOST}## FAILED!" no-exit
+  fxCatastrophicError "${WHAT} ##${MSSH_TARGET_LABEL}## FAILED!" no-exit
   echo ""
 
   ## the host is listed once, no matter how many of its commands failed
   if [ "$MSSH_HOST_HAS_FAILED" != "true" ]; then
 
     MSSH_HOST_HAS_FAILED=true
-    MSSH_FAILED_HOSTS+=("$MSSH_USER_AT_HOST")
+    MSSH_FAILED_HOSTS+=("$MSSH_TARGET_LABEL")
   fi
 
   return 1
@@ -128,7 +149,7 @@ while read -r line || [[ -n "$line" ]]; do
       MSSH_RUN_AS_LABEL="the SSH login user"
     fi
 
-    echo "ssh ##${MSSH_USER_AT_HOST}##, run-as ##${MSSH_RUN_AS_LABEL}##"
+    echo "ssh ##${MSSH_TARGET_LABEL}##, run-as ##${MSSH_RUN_AS_LABEL}##"
   fi
 
 done < "$MSSH_TARGET_HOSTS_LOCAL_FILE"
@@ -147,14 +168,14 @@ while read -r line || [[ -n "$line" ]]; do
     echo -e "\e[1;43m🏁 ======= MULTISSH ON ${MSSH_HOST} is RUNNING =======\e[0m"
     echo ""
 
-    ssh -tt ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"' </dev/null
+    ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"' </dev/null
     MSSH_EXIT_CODE=$?
     echo ""
     msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
 
     MSSH_SCRIPT_REMOTE_FILE=/tmp/mssh-script-to-execute.sh
     sectionText "Uploading to ${MSSH_USER_AT_HOST}:${MSSH_SCRIPT_REMOTE_FILE}"
-    scp "$MSSH_SCRIPT_LOCAL_FILE" ${MSSH_USER_AT_HOST}:"${MSSH_SCRIPT_REMOTE_FILE}"
+    scp ${MSSH_SCP_PORT_OPTION} "$MSSH_SCRIPT_LOCAL_FILE" ${MSSH_USER_AT_HOST}:"${MSSH_SCRIPT_REMOTE_FILE}"
     MSSH_EXIT_CODE=$?
     echo ""
 
@@ -163,20 +184,20 @@ while read -r line || [[ -n "$line" ]]; do
 
     if [ -z "$MSSH_HOST_RUN_AS_USERNAME" ]; then
 
-      ssh -tt ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning the remote script as $(whoami) \e[0m"' </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning the remote script as $(whoami) \e[0m"' </dev/null
       msshCheckExitCode $? "SSH connection to" || continue
 
-      ssh -tt ${MSSH_USER_AT_HOST} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
       MSSH_EXIT_CODE=$?
 
     else
 
-      ssh -tt ${MSSH_USER_AT_HOST} "echo -e \"\e[1;33mRunning the remote script as ${MSSH_HOST_RUN_AS_USERNAME} \e[0m\"" </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "echo -e \"\e[1;33mRunning the remote script as ${MSSH_HOST_RUN_AS_USERNAME} \e[0m\"" </dev/null
       MSSH_EXIT_CODE=$?
       echo ""
       msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
 
-      ssh -tt ${MSSH_USER_AT_HOST} "sudo -u ${MSSH_HOST_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "sudo -u ${MSSH_HOST_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
       MSSH_EXIT_CODE=$?
     fi
 
@@ -186,14 +207,14 @@ while read -r line || [[ -n "$line" ]]; do
     msshCheckExitCode $MSSH_EXIT_CODE "Remote script execution on"
 
     sectionText "Remove the script from remote..."
-    ssh -tt ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+    ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
     MSSH_EXIT_CODE=$?
     echo ""
     msshCheckExitCode $MSSH_EXIT_CODE "Remote script cleanup on"
 
     if [ ! -z "${MSSH_POST_EXEC_SCRIPT}" ]; then
       sectionText "Running the post-exec script..."
-      bash "${MSSH_POST_EXEC_SCRIPT}" "${MSSH_HOST_LOGIN_USERNAME}" "${MSSH_HOST}" "$MSSH_TARGET_HOSTS_LOCAL_FILE" "${MSSH_HOST_RUN_AS_USERNAME}"
+      bash "${MSSH_POST_EXEC_SCRIPT}" "${MSSH_HOST_LOGIN_USERNAME}" "${MSSH_HOST}" "$MSSH_TARGET_HOSTS_LOCAL_FILE" "${MSSH_HOST_RUN_AS_USERNAME}" "${MSSH_HOST_PORT}"
     fi
 
     if [ "$MSSH_HOST_HAS_FAILED" = "true" ]; then
