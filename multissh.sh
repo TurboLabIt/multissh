@@ -136,8 +136,14 @@ function msshCheckExitCode()
 }
 
 
+##
+## The target list is read on fd 3, not on stdin: stdin belongs to ssh/scp, so that
+## the remote commands stay interactive (host key confirmations, sudo passwords,
+## anything the uploaded script asks). Reading it on stdin would let ssh eat the
+## list, feeding the remaining hosts to the first remote command.
+##
 fxTitle "Target hosts: "
-while read -r line || [[ -n "$line" ]]; do
+while read -r line <&3 || [[ -n "$line" ]]; do
 
   FIRSTCHAR="${line:0:1}"
   if [ "$FIRSTCHAR" != "#" ] && [ "$FIRSTCHAR" != "" ]; then
@@ -152,12 +158,12 @@ while read -r line || [[ -n "$line" ]]; do
     echo "ssh ##${MSSH_TARGET_LABEL}##, run-as ##${MSSH_RUN_AS_LABEL}##"
   fi
 
-done < "$MSSH_TARGET_HOSTS_LOCAL_FILE"
+done 3< "$MSSH_TARGET_HOSTS_LOCAL_FILE"
 
 
 echo ""
 MSSH_FAILED_HOSTS=()
-while read -r line || [[ -n "$line" ]]; do
+while read -r line <&3 || [[ -n "$line" ]]; do
 
   FIRSTCHAR="${line:0:1}"
   if [ "$FIRSTCHAR" != "#" ] && [ "$FIRSTCHAR" != "" ]; then
@@ -168,7 +174,7 @@ while read -r line || [[ -n "$line" ]]; do
     echo -e "\e[1;43m🏁 ======= MULTISSH ON ${MSSH_HOST} is RUNNING =======\e[0m"
     echo ""
 
-    ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"' </dev/null
+    ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"'
     MSSH_EXIT_CODE=$?
     echo ""
     msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
@@ -184,20 +190,20 @@ while read -r line || [[ -n "$line" ]]; do
 
     if [ -z "$MSSH_HOST_RUN_AS_USERNAME" ]; then
 
-      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning the remote script as $(whoami) \e[0m"' </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning the remote script as $(whoami) \e[0m"'
       msshCheckExitCode $? "SSH connection to" || continue
 
-      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "bash \"${MSSH_SCRIPT_REMOTE_FILE}\""
       MSSH_EXIT_CODE=$?
 
     else
 
-      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "echo -e \"\e[1;33mRunning the remote script as ${MSSH_HOST_RUN_AS_USERNAME} \e[0m\"" </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "echo -e \"\e[1;33mRunning the remote script as ${MSSH_HOST_RUN_AS_USERNAME} \e[0m\""
       MSSH_EXIT_CODE=$?
       echo ""
       msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
 
-      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "sudo -u ${MSSH_HOST_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+      ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "sudo -u ${MSSH_HOST_RUN_AS_USERNAME} -H bash \"${MSSH_SCRIPT_REMOTE_FILE}\""
       MSSH_EXIT_CODE=$?
     fi
 
@@ -207,7 +213,7 @@ while read -r line || [[ -n "$line" ]]; do
     msshCheckExitCode $MSSH_EXIT_CODE "Remote script execution on"
 
     sectionText "Remove the script from remote..."
-    ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\"" </dev/null
+    ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\""
     MSSH_EXIT_CODE=$?
     echo ""
     msshCheckExitCode $MSSH_EXIT_CODE "Remote script cleanup on"
@@ -227,7 +233,7 @@ while read -r line || [[ -n "$line" ]]; do
 
   fi
 
-done < "$MSSH_TARGET_HOSTS_LOCAL_FILE"
+done 3< "$MSSH_TARGET_HOSTS_LOCAL_FILE"
 
 
 if [ ${#MSSH_FAILED_HOSTS[@]} -gt 0 ]; then
