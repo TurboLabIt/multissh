@@ -8,8 +8,6 @@ source <(curl -s https://raw.githubusercontent.com/TurboLabIt/bash-fx/main/bash-
 if [ -f /usr/local/turbolab.it/zzfirewall/setup.sh ]; then
 
   sudo bash "/usr/local/turbolab.it/zzfirewall/setup.sh"
-  ## zzfirewall rootChecks and never self-elevates (zzupdate does): without sudo it dies
-  ## as soon as the run-as user isn't root, and AUTO_EXEC_ON_SELF always runs it as us
   sudo zzfirewall
 
 else
