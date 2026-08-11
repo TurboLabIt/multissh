@@ -1,0 +1,17 @@
+## this list contains our TEST instances
+##
+## One entry per line. Empty lines and lines starting with "#" are skipped.
+##
+##   host                 ssh login and remote run-as both from the multissh config
+##   login@host           ssh in as "login"
+##   login@runas@host     ssh in as "login", then run the script as "runas"
+##   ...anything:2222     add ":port" when sshd doesn't listen on 22
+##
+# 192.168.1.50
+# staging.example.com
+# my-test-host-from-ssh-config
+# zane@test-01.example.com
+# zane@www-data@test-02.example.com
+# zane@root@test-03.example.com:2222
+#
+# 📚 For the up-to-date docs, see: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/server-list/test.txt

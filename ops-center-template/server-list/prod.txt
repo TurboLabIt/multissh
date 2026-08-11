@@ -1,0 +1,2 @@
+## this list contains our PRODUCTION instances
+# 📚 Available params: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/server-list/test.txt

@@ -1,0 +1,20 @@
+## .ssh/config for ops-center managed instances
+#
+# 🪄 Based on https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/ssh_config
+#
+# ## 🔘 Gateway
+# Host stargate
+# HostName <my-app.com>
+# Port <custom-port>
+# ProxyJump none
+#
+#
+# ## 📩 Mailserver
+# Host mail
+# HostName <mailserver.my-app.com>
+# Port <custom-port>
+# ProxyJump stargate
+#
+# 📚 For the up-to-date docs, see: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/ssh_config
+
+
