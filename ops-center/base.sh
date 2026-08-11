@@ -34,7 +34,7 @@ curl -s https://raw.githubusercontent.com/TurboLabIt/multissh/main/setup.sh | su
 ## policy, ...). They go into the personal ~/.ssh/config as its FIRST line: ssh_config is
 ## "first obtained value wins", so line 1 is the only spot nothing below can override.
 ##
-OPSCENTER_SSH_CONFIG="${SCRIPT_DIR}ssh_config"
+OPSCENTER_SSH_CONFIG="${SCRIPT_DIR}server-list/ssh_config"
 
 if [ -f "${OPSCENTER_SSH_CONFIG}" ]; then
 

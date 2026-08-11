@@ -1,4 +1,7 @@
 ## this list contains our TEST instances
+#
+# 🪄 Based on https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/server-list/test.txt
+#
 ##
 ## One entry per line. Empty lines and lines starting with "#" are skipped.
 ##

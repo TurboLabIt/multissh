@@ -1,6 +1,6 @@
 ## .ssh/config for ops-center managed instances
 #
-# 🪄 Based on https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/ssh_config
+# 🪄 Based on https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/server-list/ssh_config
 #
 # ## 🔘 Gateway
 # Host stargate
@@ -15,6 +15,6 @@
 # Port <custom-port>
 # ProxyJump stargate
 #
-# 📚 For the up-to-date docs, see: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/ssh_config
+# 📚 For the up-to-date docs, see: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/server-list/ssh_config
 
 
