@@ -4,17 +4,25 @@ if [ -z "$(command -v curl)" ]; then sudo apt update && sudo apt install curl -y
 source <(curl -s https://raw.githubusercontent.com/TurboLabIt/bash-fx/main/bash-fx.sh)
 ## bash-fx is ready
 
-## -n, not -z: "command -v" prints the path when the command EXISTS, so -z is the
-## "it's missing" case and the two branches used to be the wrong way round
-if [ -n "$(command -v zzupdate)" ]; then
-  zzupdate
+
+if [ -f /usr/local/turbolab.it/zzfirewall/setup.sh ]; then
+
+  sudo bash "/usr/local/turbolab.it/zzfirewall/setup.sh"
+  ## zzfirewall rootChecks and never self-elevates (zzupdate does): without sudo it dies
+  ## as soon as the run-as user isn't root, and AUTO_EXEC_ON_SELF always runs it as us
+  sudo zzfirewall
+
 else
-  fxWarning "zzupdate not found"
+
+  fxWarning "zzfirewall not found"
 fi
 
 
-if [ -n "$(command -v zzfirewall)" ]; then
-  zzfirewall
+if [ -n "$(command -v zzupdate)" ]; then
+
+  zzupdate
+
 else
-  fxWarning "zzfirewall not found"
+
+  fxWarning "zzupdate not found"
 fi
