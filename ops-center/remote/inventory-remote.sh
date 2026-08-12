@@ -65,6 +65,19 @@ addToReport 'os_version' "$(. /etc/os-release 2>/dev/null && echo "${VERSION_ID}
 ## SSH version
 addToReport 'ssh_version' "$(ssh -V 2>&1 | sed 's/ .*//')"
 
+## nginx version. "nginx -v" reports on stderr, so 2>&1 or there'd be nothing to read
+INVENTORY_NGINX_VERSION=$(nginx -v 2>&1 | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+addToReport 'nginx_version' "${INVENTORY_NGINX_VERSION}"
+
+## MySQL/MariaDB. mysqld is the SERVER, which is the interesting one and is what root
+## finds in /usr/sbin; the client only gets asked when there is no server on the host.
+## MariaDB's client says "Ver 15.1 Distrib 10.11.6-MariaDB": 15.1 is the client protocol
+## and would be a lie in this column, so of the two it's the LAST one which counts. The
+## packaging tail ("-0ubuntu0.22.04.1") goes, "-MariaDB" stays: it says what this really is
+INVENTORY_MYSQL_RAW=$(mysqld --version 2>/dev/null || mysql --version 2>/dev/null)
+INVENTORY_MYSQL_VERSION=$(echo "${INVENTORY_MYSQL_RAW}" | grep -oE '(Distrib|Ver) [0-9][^ ,]*' | tail -1 | sed -E 's/^(Distrib|Ver) //; s/^([0-9.]+(-MariaDB)?).*/\1/')
+addToReport 'mysql_version' "${INVENTORY_MYSQL_VERSION}"
+
 ## PHP versions, i.e. "8.3, 8.4". The glob stays quiet on a host with no PHP at all.
 ## "sed -z" joins the lines: it swaps the newlines for ", " instead of splitting on a
 ## comma, so a value carrying one of its own can't turn into two entries
