@@ -17,7 +17,8 @@ fxHeader "🎛️ ops-center 🎛️"
 
 OPSCENTER_DIR=/opt/turbolab.it/ops-center/
 OPSCENTER_LIST_DIR="${OPSCENTER_DIR}server-list/"
-OPSCENTER_PKG_DIR=/usr/local/turbolab.it/multissh/ops-center/
+MULTISSH_DIR=/usr/local/turbolab.it/multissh/
+OPSCENTER_PKG_DIR="${MULTISSH_DIR}ops-center/"
 
 OPSC_BACKTITLE="🦝 ops-center - TurboLab.it"
 OPSC_HEIGHT=25
@@ -87,6 +88,7 @@ function opscTaskLabel()
 ##
 OPSC_ACTION=$(opscMenu "Ops-center" "What do you want to do?" \
   run "▶️   Choose the script to execute" \
+  update "✔️   Self-update" \
   new "✨   Create new")
 clear
 
@@ -94,6 +96,25 @@ if [ -z "${OPSC_ACTION}" ]; then
   fxWarning "Nothing selected: quitting"
   fxEndFooter
   exit
+fi
+
+if [ "${OPSC_ACTION}" = "update" ]; then
+
+  fxTitle "✔️ Self-updating..."
+  echo "🎯 ##${MULTISSH_DIR}##"
+
+  ## Throw away whatever was changed in here and get back on what origin says. It's not
+  ## paranoia: an ops script edited through its symlink lands in this very repo, and that
+  ## is exactly the kind of leftover which has to go before setup.sh runs
+  sudo git -C "${MULTISSH_DIR}" fetch --depth 1
+  sudo git -C "${MULTISSH_DIR}" reset --hard '@{upstream}'
+
+  ## re-links the commands and seeds the ops-center with whatever the update brought in
+  sudo bash "${MULTISSH_DIR}setup.sh"
+
+  ## this GUI was read into memory before any of the above: what's running is still the
+  ## old one, the new one takes over at the next launch
+  exit $?
 fi
 
 if [ "${OPSC_ACTION}" = "new" ]; then
