@@ -12,6 +12,7 @@ source /usr/local/turbolab.it/bash-fx/bash-fx.sh
 ## multissh installer
 sudo bash /usr/local/turbolab.it/bash-fx/setup/start.sh ${SCRIPT_NAME}
 fxLinkBin ${INSTALL_DIR}${SCRIPT_NAME}.sh
+fxLinkBin ${INSTALL_DIR}zzopscenter.sh zzopsc
 
 
 ## ops-center installer: seed the shared runbook directory with the ready-to-use scripts.
