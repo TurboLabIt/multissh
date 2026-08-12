@@ -93,8 +93,6 @@ OPSC_ACTION=$(opscMenu "Ops-center" "What do you want to do?" \
 clear
 
 if [ -z "${OPSC_ACTION}" ]; then
-  fxWarning "Nothing selected: quitting"
-  fxEndFooter
   exit
 fi
 
