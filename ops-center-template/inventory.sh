@@ -19,7 +19,7 @@ export INVENTORY_REPORT_FILE=/tmp/inventory.csv
 ## post-exec is appending rows to this very file. One column per field collected by
 ## remote/inventory-remote.sh, plus the two the post-exec puts in front of them.
 mkdir -p "$(dirname "${INVENTORY_REPORT_FILE}")"
-echo "reference|list_name|coll_date|hostname|os|os_version|ssh_version|php_versions|zzfirewall|webstackup|priv_gen" > "${INVENTORY_REPORT_FILE}"
+echo "reference|list_name|coll_date|hostname|os|os_version|ssh_version|php_versions|zzfirewall|webstackup|/var/www" > "${INVENTORY_REPORT_FILE}"
 
 source "/usr/local/turbolab.it/multissh/ops-center/base.sh"
 

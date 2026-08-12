@@ -79,8 +79,11 @@ else
   addToReport 'webstackup' 'N'
 fi
 
-## the last field of the row: no trailing separator
-reportFlag 'priv_gen' /var/www/private_generics/ no-pipe
+## What's being served, i.e. "html,my-app,private_generics": the first level of /var/www,
+## folders only. -xtype d so that a site symlinked in from elsewhere still counts as one.
+## The last field of the row: no trailing separator
+INVENTORY_WWW_DIRS=$(find /var/www/ -mindepth 1 -maxdepth 1 -xtype d -printf '%f\n' 2>/dev/null | sort | paste -sd, -)
+addToReport '/var/www' "${INVENTORY_WWW_DIRS}" no-pipe
 
 echo ""
 fxOK "${INVENTORY_REMOTE_FILE}"
