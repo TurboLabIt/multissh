@@ -101,6 +101,29 @@ fi
 fxInfo "Remote script: ##${REMOTE_SCRIPT}##"
 
 
+## Optional callback which runs HERE, on the ops-center, once per host, right after the
+## remote script is done. multissh hands it: login, host, serverlist, run-as, port.
+## Same local-wins-over-package lookup as the remote script, and a task can point
+## OPS_POST_EXEC somewhere else on its own.
+if [ -z "${OPS_POST_EXEC}" ]; then
+
+  OPS_POST_EXEC="${SCRIPT_DIR}local/${OPS_TASK}-post-exec.sh"
+
+  if [ ! -f "${OPS_POST_EXEC}" ]; then
+    OPS_POST_EXEC="/usr/local/turbolab.it/multissh/ops-center/local/${OPS_TASK}-post-exec.sh"
+  fi
+
+  ## no callback for this task: multissh skips it when it's empty
+  if [ ! -f "${OPS_POST_EXEC}" ]; then
+    OPS_POST_EXEC=
+  fi
+fi
+
+if [ ! -z "${OPS_POST_EXEC}" ]; then
+  fxInfo "Post-exec script: ##${OPS_POST_EXEC}##"
+fi
+
+
 ##
 function checkServerListInput()
 {
@@ -144,6 +167,7 @@ if [ "${AUTO_EXEC}" != "0" ]; then
   ## never pipe multissh into tee: the pipe throws its exit code away (you'd always read
   ## tee's own 0, no matter how many hosts failed) and hides the tty from its stdout.
   ## "script" writes the very same log through a real pty, "-e" gives back multissh's code
+  MSSH_POST_EXEC_SCRIPT="${OPS_POST_EXEC}" \
   script -q -e -c "multissh default \"${SERVERLIST_FILE}\" \"${REMOTE_SCRIPT}\"" \
     "${LOG_DIR}${OPS_TASK}.log"
 

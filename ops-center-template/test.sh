@@ -28,12 +28,21 @@
 #                                   AUTO_CHECK_SERVER_LIST_INPUT=0, base.sh overwrites it
 #                                   otherwise. A `prod*` list always asks for confirmation
 #
+#   OPS_POST_EXEC=<path>            Script to run HERE, on the ops-center, once per host,
+#                                   right after the remote one is done on it. multissh
+#                                   hands it: login, host, serverlist, run-as, port.
+#                                   (default: the ops-center's own
+#                                   `local/<name>-post-exec.sh` when it's there, else the
+#                                   one provided by multissh, else no callback at all.
+#                                   See inventory.sh, which uses one to fetch each report)
+#
 # 📤 Set BY base.sh, to be read after sourcing it:
 #
 #   REMOTE_SCRIPT                   Full path of the script which ran on the hosts
 #   SERVERLIST_FILE                 Full path of the list which was used
 #   SCRIPT_DIR                      This ops-center directory, with its trailing slash
 #   LOG_DIR                         Where the logs are kept
+#   OPS_POST_EXEC                   Full path of the per-host callback, empty when none
 #   OPS_EXIT_CODE                   multissh's own exit code (unset when AUTO_EXEC=0)
 #
 # 📚 For the up-to-date docs, see: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/test.sh
