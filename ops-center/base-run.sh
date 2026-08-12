@@ -20,10 +20,13 @@ fi
 
 fxHeader "🚀 ${OPS_TASK}"
 
-## Absolute path to the SOURCING script, e.g. /home/user/bin/foo.sh
-SCRIPT_FULLPATH=$(readlink -f "$0")
-## Absolute path of the SOURCING script, thus /home/user/bin
-SCRIPT_DIR=$(dirname "$SCRIPT_FULLPATH")/
+## Absolute path of the ops-center, i.e. the directory holding the script which sourced
+## base.sh. The DIRECTORY gets resolved, never the script itself: most ops scripts are
+## symlinks to the ones multissh ships, so a "readlink -f $0" would follow them back into
+## the package and every lookup below -- server-list/, remote/, local/, ssh_config --
+## would read the shipped template instead of this very ops-center.
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)/
+SCRIPT_FULLPATH="${SCRIPT_DIR}$(basename "$0")"
 
 LOG_DIR=/var/log/turbolab.it/ops-center/
 mkdir -p "${LOG_DIR}"
