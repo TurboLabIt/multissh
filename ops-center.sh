@@ -185,8 +185,6 @@ OPSC_LIST=$(opscMenu "${OPSC_TASK}" "Which server list do you want to run it aga
 clear
 
 if [ -z "${OPSC_LIST}" ]; then
-  fxWarning "No server list selected: quitting"
-  fxEndFooter
   exit
 fi
 
