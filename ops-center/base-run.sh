@@ -3,8 +3,11 @@
 ## already the freshly pulled version. Put the logic in this file, not in base.sh.
 
 ## https://github.com/TurboLabIt/bash-fx
-if [ -z $(command -v curl) ]; then sudo apt update && sudo apt install curl -y; fi
-if [ ! -f "/usr/local/turbolab.it/bash-fx/bash-fx.sh" ]; then curl -s https://raw.githubusercontent.com/TurboLabIt/bash-fx/main/setup.sh | sudo bash; fi
+if [ ! -f "/usr/local/turbolab.it/bash-fx/bash-fx.sh" ]; then
+  echo -e "\e[1;41m🛑 bash-fx is not installed and the update didn't fix it. Aborting.\e[0m"
+  exit 1
+fi
+
 source /usr/local/turbolab.it/bash-fx/bash-fx.sh
 ## bash-fx is ready
 
