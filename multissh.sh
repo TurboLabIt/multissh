@@ -31,12 +31,6 @@ if [ ! -f "${MSSH_SCRIPT_LOCAL_FILE}" ]; then
 fi
 
 
-function sectionText()
-{
-  echo -e "\e[1;33m${1}\e[0m"
-}
-
-
 ##
 ## Read a target hosts list entry and set the values to use for it.
 ## Accepted formats: "host", "login@host", "login@runas@host".
@@ -179,7 +173,7 @@ while read -r line <&3 || [[ -n "$line" ]]; do
     msshCheckExitCode $MSSH_EXIT_CODE "SSH connection to" || continue
 
     MSSH_SCRIPT_REMOTE_FILE=/tmp/mssh-script-to-execute.sh
-    sectionText "Uploading to ${MSSH_USER_AT_HOST}:${MSSH_SCRIPT_REMOTE_FILE}"
+    fxImportantMessage "Uploading to ${MSSH_USER_AT_HOST}:${MSSH_SCRIPT_REMOTE_FILE}"
     scp ${MSSH_SCP_PORT_OPTION} "$MSSH_SCRIPT_LOCAL_FILE" ${MSSH_USER_AT_HOST}:"${MSSH_SCRIPT_REMOTE_FILE}"
     MSSH_EXIT_CODE=$?
     echo ""
@@ -211,14 +205,14 @@ while read -r line <&3 || [[ -n "$line" ]]; do
     ## the script failed, but the remote cleanup is still worth a try
     msshCheckExitCode $MSSH_EXIT_CODE "Remote script execution on"
 
-    sectionText "Remove the script from remote..."
+    fxImportantMessage "Remove the script from remote..."
     ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} "rm -f \"${MSSH_SCRIPT_REMOTE_FILE}\""
     MSSH_EXIT_CODE=$?
     echo ""
     msshCheckExitCode $MSSH_EXIT_CODE "Remote script cleanup on"
 
     if [ ! -z "${MSSH_POST_EXEC_SCRIPT}" ]; then
-      sectionText "Running the post-exec script..."
+      fxImportantMessage "Running the post-exec script..."
       bash "${MSSH_POST_EXEC_SCRIPT}" "${MSSH_HOST_LOGIN_USERNAME}" "${MSSH_HOST}" "$MSSH_TARGET_HOSTS_LOCAL_FILE" "${MSSH_HOST_RUN_AS_USERNAME}" "${MSSH_HOST_PORT}"
     fi
 
