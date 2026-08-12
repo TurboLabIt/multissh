@@ -238,8 +238,9 @@ done 3< "$MSSH_TARGET_HOSTS_LOCAL_FILE"
 
 if [ ${#MSSH_FAILED_HOSTS[@]} -gt 0 ]; then
 
-  fxTitle "😱 Something FAILED on ${#MSSH_FAILED_HOSTS[@]} host(s):"
-  printf '%s\n' "${MSSH_FAILED_HOSTS[@]}"
+  ## "no-exit": every host of the list has had its turn already, this is the summary of
+  ## what went wrong and not a reason to quit before the footer
+  fxCatastrophicError "😱 Something FAILED on ${#MSSH_FAILED_HOSTS[@]} host(s):$(printf '\n%s' "${MSSH_FAILED_HOSTS[@]}")" no-exit
 fi
 
 fxEndFooter
