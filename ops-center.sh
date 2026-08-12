@@ -154,8 +154,6 @@ OPSC_TASK=$(opscMenu "Ops-center" "Which task do you want to run?" "${OPSC_TASK_
 clear
 
 if [ -z "${OPSC_TASK}" ]; then
-  fxWarning "No task selected: quitting"
-  fxEndFooter
   exit
 fi
 
