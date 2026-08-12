@@ -181,6 +181,10 @@ fi
 
 if [ "${AUTO_EXEC_ON_SELF}" != "0" ]; then
 
-  ## doing it locally too
+  ## doing it locally too, under the very same banner multissh prints before each host:
+  ## in the log this machine then reads as just one more of the hosts which were done
+  echo -e "\e[1;43m🏁 ======= RUNNING LOCALLY =======\e[0m"
+  echo ""
+
   bash "${REMOTE_SCRIPT}"
 fi
