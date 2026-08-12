@@ -3,7 +3,7 @@
 #
 # 🪄 Based on https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/update.sh
 #
-# 📚 Available params: https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/test.sh
+# 📚 Available params, and what base.sh hands back: https://github.com/TurboLabIt/multissh#new-list-new-scripts
 #
 ## 🚨 WARNING 🚨
 #
