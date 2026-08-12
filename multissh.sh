@@ -171,8 +171,7 @@ while read -r line <&3 || [[ -n "$line" ]]; do
     msshParseTarget "$line"
     MSSH_HOST_HAS_FAILED=false
 
-    echo -e "\e[1;43m🏁 ======= MULTISSH ON ${MSSH_HOST} is RUNNING =======\e[0m"
-    echo ""
+    fxSection "MULTISSH ON ${MSSH_HOST} is RUNNING"
 
     ssh -tt ${MSSH_SSH_PORT_OPTION} ${MSSH_USER_AT_HOST} 'echo -e "\e[1;33mRunning on $(hostname)\e[0m"'
     MSSH_EXIT_CODE=$?
