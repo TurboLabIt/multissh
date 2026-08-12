@@ -17,6 +17,7 @@ fxHeader "🎛️ ops-center 🎛️"
 
 OPSCENTER_DIR=/opt/turbolab.it/ops-center/
 OPSCENTER_LIST_DIR="${OPSCENTER_DIR}server-list/"
+OPSCENTER_PKG_DIR=/usr/local/turbolab.it/multissh/ops-center/
 
 OPSC_BACKTITLE="🦝 ops-center - TurboLab.it"
 OPSC_HEIGHT=25
@@ -82,7 +83,28 @@ function opscTaskLabel()
 
 
 ##
-## 1. which task
+## 1. run something, or write something new
+##
+OPSC_ACTION=$(opscMenu "Ops-center" "What do you want to do?" \
+  run "▶️   Choose the script to execute" \
+  new "✨   Create new")
+clear
+
+if [ -z "${OPSC_ACTION}" ]; then
+  fxWarning "Nothing selected: quitting"
+  fxEndFooter
+  exit
+fi
+
+if [ "${OPSC_ACTION}" = "new" ]; then
+
+  bash "${OPSCENTER_PKG_DIR}new.sh"
+  exit $?
+fi
+
+
+##
+## 2. which task
 ##
 ## Every *.sh of the ops-center. No "-type f" here: the ops scripts are symlinks to the
 ## multissh-managed ones, and -type f would silently leave out all but the copied ones
@@ -118,7 +140,7 @@ fi
 
 
 ##
-## 2. against which server list
+## 3. against which server list
 ##
 ## Only *.txt: the task is handed the NAME of the list and appends ".txt" to it on its
 ## own, so nothing else could be run against anyway. ssh_config drops out right here
@@ -149,7 +171,7 @@ fi
 
 
 ##
-## 3. run it
+## 4. run it
 ##
 fxTitle "🚀 Running ##${OPSC_TASK}## on ##${OPSC_LIST}##..."
 
