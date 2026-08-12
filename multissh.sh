@@ -241,6 +241,12 @@ if [ ${#MSSH_FAILED_HOSTS[@]} -gt 0 ]; then
   ## "no-exit": every host of the list has had its turn already, this is the summary of
   ## what went wrong and not a reason to quit before the footer
   fxCatastrophicError "😱 Something FAILED on ${#MSSH_FAILED_HOSTS[@]} host(s):$(printf '\n%s' "${MSSH_FAILED_HOSTS[@]}")" no-exit
+
+  ## A red footer and a non-zero status. It matters beyond the colour: the ops-center
+  ## keeps this code as OPS_EXIT_CODE, and cron -- or anything else driving multissh --
+  ## has no other way to tell a clean sweep from a run where every host went down
+  fxEndFooter failure
+  exit 1
 fi
 
 fxEndFooter
