@@ -133,11 +133,13 @@ OPSC_TASK_OPTIONS=()
 while read -r OPSC_TASK_FILE <&3; do
 
   case "${OPSC_TASK_FILE}" in
-    test.sh)        OPSC_TASK_ICON="🧪" ;;
-    shields-up.sh)  OPSC_TASK_ICON="🛡️" ;;
-    update.sh)      OPSC_TASK_ICON="⬆️" ;;
-    inventory.sh)   OPSC_TASK_ICON="📒" ;;
-    *)              OPSC_TASK_ICON="📜" ;;
+    test.sh)                  OPSC_TASK_ICON="🧪" ;;
+    shields-up.sh)            OPSC_TASK_ICON="🛡️" ;;
+    update.sh)                OPSC_TASK_ICON="⬆️" ;;
+    inventory.sh)             OPSC_TASK_ICON="📒" ;;
+    malware-scan.sh)          OPSC_TASK_ICON="🦠" ;;
+    malware-scan-collect.sh)  OPSC_TASK_ICON="📥" ;;
+    *)                        OPSC_TASK_ICON="📜" ;;
   esac
 
   OPSC_TASK_OPTIONS+=( "${OPSC_TASK_FILE}" "${OPSC_TASK_ICON}  $(opscTaskLabel "${OPSCENTER_DIR}${OPSC_TASK_FILE}")" )

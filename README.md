@@ -110,6 +110,23 @@ If you don't want to use the TUI, you can run the scripts directly like this:
 Mind the order of your list: a jump host (`ProxyJump`) goes down 60 seconds after its own turn, and every connection through it goes down along. Put it last. The ops-center itself gets the very same treatment at the end of the run (see `AUTO_EXEC_ON_SELF`), so expect it to reboot too.
 
 
+## The `malware-scan` tasks scan the whole fleet at once
+
+`malware-scan.sh` runs webstackup's [malware-scan.sh](https://github.com/TurboLabIt/webstackup/blob/master/script/system/malware-scan.sh) (ClamAV, the whole `/`, network shares excluded) on every host of the list at the same time, then collects the outcome when the last one is over:
+
+1. **start**: an ordinary multissh run. On each host, `remote/malware-scan-remote.sh` updates bash-fx, wipes `/var/log/turbolab.it/malware-scan/`, downloads the latest `malware-scan.sh` in there and starts it in background. A few seconds per host: the scan outlives the SSH session. A host already scanning is left alone, and waited for
+2. **wait**: a check every 5 minutes, for 24 hours at most. One short SSH connection per host, as the SSH user (no sudo, no tty), through `remote/malware-scan-collect-remote.sh`, which only reads that folder. A host which fails to answer 3 checks in a row isn't waited for anymore
+3. **collect**: two reports in `/var/log/turbolab.it/ops-center/malware-scan/`, named after the list and the time:
+   - `<list>_<date>.csv`: one row per host, where its scan stands and what it found
+   - `<list>_<date>.log`: the whole output of every scan, one section per host
+
+The run ends with a line per host, and a non-zero exit code unless every host got to the end of its scan and was found clean.
+
+Ctrl+C while waiting stops the waiting, never the scans: whatever is there gets collected right away. `malware-scan-collect.sh` does the waiting and the collecting only, without starting anything: run it later on to collect the scans an interrupted run left behind.
+
+The scans keep CPU and disks busy for hours. When memory runs out, the kernel kills the scan first (`oom_score_adj=1000`): the host reports an incomplete scan, the rest of the server lives on. A host where `clamav-daemon` is running is skipped: the scan would purge it.
+
+
 ## multissh, with profiles
 
 Instead of using the Operations Center, you can build profiles. 

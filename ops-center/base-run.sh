@@ -90,15 +90,25 @@ if [ -f "${OPSCENTER_SSH_CONFIG}" ]; then
 fi
 
 
-## the local copy wins over the one provided by the package, so that every ops-center
-## can override any task with its own version
-REMOTE_SCRIPT="${SCRIPT_DIR}remote/${OPS_TASK}-remote.sh"
-if [ ! -f "${REMOTE_SCRIPT}" ]; then
-  REMOTE_SCRIPT="/usr/local/turbolab.it/multissh/ops-center/remote/${OPS_TASK}-remote.sh"
-fi
+##
+## Full path of a task file, i.e. "remote/update-remote.sh": this ops-center's own copy when there is one, else the
+## one multissh provides, so that every ops-center can override any task with its own version. Empty when there is
+## neither. The ops scripts can use it too, once base.sh is done
+##
+function opsTaskFile()
+{
+  if [ -f "${SCRIPT_DIR}${1}" ]; then
+    echo "${SCRIPT_DIR}${1}"
+  elif [ -f "/usr/local/turbolab.it/multissh/ops-center/${1}" ]; then
+    echo "/usr/local/turbolab.it/multissh/ops-center/${1}"
+  fi
+}
 
-if [ ! -f "${REMOTE_SCRIPT}" ]; then
-  fxCatastrophicError "Remote script doesn't exist: ##${REMOTE_SCRIPT}##"
+
+REMOTE_SCRIPT=$(opsTaskFile "remote/${OPS_TASK}-remote.sh")
+
+if [ -z "${REMOTE_SCRIPT}" ]; then
+  fxCatastrophicError "Remote script doesn't exist: ##remote/${OPS_TASK}-remote.sh##, neither in ##${SCRIPT_DIR}## nor in multissh"
 fi
 
 fxInfo "Remote script: ##${REMOTE_SCRIPT}##"
@@ -110,16 +120,8 @@ fxInfo "Remote script: ##${REMOTE_SCRIPT}##"
 ## OPS_POST_EXEC somewhere else on its own.
 if [ -z "${OPS_POST_EXEC}" ]; then
 
-  OPS_POST_EXEC="${SCRIPT_DIR}local/${OPS_TASK}-post-exec.sh"
-
-  if [ ! -f "${OPS_POST_EXEC}" ]; then
-    OPS_POST_EXEC="/usr/local/turbolab.it/multissh/ops-center/local/${OPS_TASK}-post-exec.sh"
-  fi
-
-  ## no callback for this task: multissh skips it when it's empty
-  if [ ! -f "${OPS_POST_EXEC}" ]; then
-    OPS_POST_EXEC=
-  fi
+  ## empty when this task has no callback: multissh skips it then
+  OPS_POST_EXEC=$(opsTaskFile "local/${OPS_TASK}-post-exec.sh")
 fi
 
 if [ ! -z "${OPS_POST_EXEC}" ]; then

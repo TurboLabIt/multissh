@@ -2,6 +2,7 @@
 echo ""
 
 source "/usr/local/turbolab.it/bash-fx/bash-fx.sh"
+source "/usr/local/turbolab.it/multissh/multissh-functions.sh"
 fxHeader "🦝🦝 multissh 🦝🦝"
 fxConfigLoader "$1"
 
@@ -29,76 +30,6 @@ fi
 if [ ! -f "${MSSH_SCRIPT_LOCAL_FILE}" ]; then
   fxCatastrophicError "Script file ##${MSSH_SCRIPT_LOCAL_FILE}## NOT FOUND!"
 fi
-
-
-##
-## Read a target hosts list entry and set the values to use for it.
-## Accepted formats: "host", "login@host", "login@runas@host".
-## The missing usernames fall back to the profile defaults.
-## Every host can carry a ":port" suffix (default: let ssh decide).
-##
-function msshParseTarget()
-{
-  local TARGET="$1"
-  local SEPARATORS="${TARGET//[^@]/}"
-  local REMAINDER
-
-  MSSH_HOST_LOGIN_USERNAME="$MSSH_REMOTE_LOGIN_USERNAME"
-  MSSH_HOST_RUN_AS_USERNAME="$MSSH_REMOTE_RUN_AS_USERNAME"
-  MSSH_HOST_PORT=
-
-  case ${#SEPARATORS} in
-
-    0)
-      MSSH_HOST="$TARGET"
-      ;;
-
-    1)
-      MSSH_HOST_LOGIN_USERNAME="${TARGET%%@*}"
-      MSSH_HOST="${TARGET#*@}"
-      ;;
-
-    2)
-      MSSH_HOST_LOGIN_USERNAME="${TARGET%%@*}"
-      REMAINDER="${TARGET#*@}"
-      MSSH_HOST_RUN_AS_USERNAME="${REMAINDER%%@*}"
-      MSSH_HOST="${REMAINDER#*@}"
-      ;;
-
-    *)
-      fxCatastrophicError "Invalid target ##${TARGET}##! Expected ##host##, ##login@host## or ##login@runas@host##"
-      ;;
-  esac
-
-  if [ -z "$MSSH_HOST" ]; then
-    fxCatastrophicError "Invalid target ##${TARGET}##! The hostname is missing"
-  fi
-
-  ## "host:port" (an IPv6 address, with its own colons, is left alone)
-  MSSH_SSH_PORT_OPTION=
-  MSSH_SCP_PORT_OPTION=
-  if [[ "$MSSH_HOST" =~ ^([^:]+):([0-9]+)$ ]]; then
-
-    MSSH_HOST="${BASH_REMATCH[1]}"
-    MSSH_HOST_PORT="${BASH_REMATCH[2]}"
-
-    ## lowercase -p for ssh, uppercase -P for scp!
-    MSSH_SSH_PORT_OPTION="-p ${MSSH_HOST_PORT}"
-    MSSH_SCP_PORT_OPTION="-P ${MSSH_HOST_PORT}"
-  fi
-
-  ## no login username at all => let ~/.ssh/config decide
-  MSSH_USER_AT_HOST="${MSSH_HOST}"
-  if [ ! -z "$MSSH_HOST_LOGIN_USERNAME" ]; then
-    MSSH_USER_AT_HOST="${MSSH_HOST_LOGIN_USERNAME}@${MSSH_HOST}"
-  fi
-
-  ## the port doesn't belong to the ssh destination: keep it for the messages only
-  MSSH_TARGET_LABEL="$MSSH_USER_AT_HOST"
-  if [ ! -z "$MSSH_HOST_PORT" ]; then
-    MSSH_TARGET_LABEL="${MSSH_USER_AT_HOST}:${MSSH_HOST_PORT}"
-  fi
-}
 
 
 ##
@@ -139,8 +70,7 @@ function msshCheckExitCode()
 fxTitle "Target hosts: "
 while read -r line <&3 || [[ -n "$line" ]]; do
 
-  FIRSTCHAR="${line:0:1}"
-  if [ "$FIRSTCHAR" != "#" ] && [ "$FIRSTCHAR" != "" ]; then
+  if msshIsTarget "$line"; then
 
     msshParseTarget "$line"
 
@@ -159,8 +89,7 @@ echo ""
 MSSH_FAILED_HOSTS=()
 while read -r line <&3 || [[ -n "$line" ]]; do
 
-  FIRSTCHAR="${line:0:1}"
-  if [ "$FIRSTCHAR" != "#" ] && [ "$FIRSTCHAR" != "" ]; then
+  if msshIsTarget "$line"; then
 
     msshParseTarget "$line"
     MSSH_HOST_HAS_FAILED=false
