@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-## UPDATE/UPGRADE the instances of the input list executing the related `remote/update-remote.sh` script on them
+## UPDATE/UPGRADE the instances of the input list executing the related `remote/update-remote.sh` script on them (zzupdate, then a reboot 60 seconds later)
 #
 # 🪄 Based on https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/update.sh
 #

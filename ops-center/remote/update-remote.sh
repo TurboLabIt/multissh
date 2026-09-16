@@ -5,9 +5,30 @@ source <(curl -s https://raw.githubusercontent.com/TurboLabIt/bash-fx/main/bash-
 ## bash-fx is ready
 
 
+## Seconds between the end of this script and the reboot. multissh keeps talking to this host once the
+## script is done (script cleanup, post-exec): a reboot firing right away cuts that short and gets the
+## host reported as failed. The wait runs in background, this script and its SSH session end at once
+REBOOT_DELAY=60
+
+
 if [ -n "$(command -v zzupdate)" ]; then
 
-  zzupdate
+  ## "noreboot" is a profile zzupdate ships: no reboot of its own, whatever the local zzupdate.conf says.
+  ## It happens below instead, delayed, on every host alike (a "server" profile would skip it altogether).
+  ## Not if zzupdate bailed out, though: nothing got updated, a reboot would only take the host down for nothing
+  if zzupdate noreboot; then
+
+    ## zzupdate has just pulled bash-fx: load it again. What this shell got at the top came from the LOCAL
+    ## copy as it was before that (bash-fx.sh reads its scripts/ off /usr/local/turbolab.it when it's there),
+    ## and fxRebootDelayed may well be newer than that
+    source <(curl -s https://raw.githubusercontent.com/TurboLabIt/bash-fx/main/bash-fx.sh)
+
+    fxRebootDelayed "$REBOOT_DELAY"
+
+  else
+
+    fxWarning "zzupdate failed: not rebooting"
+  fi
 
 else
 

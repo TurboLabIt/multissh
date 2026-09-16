@@ -103,6 +103,13 @@ If you don't want to use the TUI, you can run the scripts directly like this:
 ````
 
 
+## The `update` task reboots the hosts
+
+`update.sh` runs `zzupdate noreboot` on each host, then, if that went well, schedules a reboot 60 seconds later, in background: the remote script returns at once, multissh cleans up and moves on to the next host while this one is still up. On the host, `sudo kill $(cat /run/bashfx-reboot.pid)` calls it off.
+
+Mind the order of your list: a jump host (`ProxyJump`) goes down 60 seconds after its own turn, and every connection through it goes down along. Put it last. The ops-center itself gets the very same treatment at the end of the run (see `AUTO_EXEC_ON_SELF`), so expect it to reboot too.
+
+
 ## multissh, with profiles
 
 Instead of using the Operations Center, you can build profiles. 
