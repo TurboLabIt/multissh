@@ -13,10 +13,11 @@ REBOOT_DELAY=60
 
 if [ -n "$(command -v zzupdate)" ]; then
 
-  ## "noreboot" is a profile zzupdate ships: no reboot of its own, whatever the local zzupdate.conf says.
-  ## It happens below instead, delayed, on every host alike (a "server" profile would skip it altogether).
-  ## Not if zzupdate bailed out, though: nothing got updated, a reboot would only take the host down for nothing
-  if zzupdate noreboot; then
+  ## "server" is the profile zzupdate ships for production hosts: no release upgrade, no firmware upgrade and,
+  ## what matters here, no reboot of its own, whatever the local zzupdate.conf says. The reboot happens below
+  ## instead, delayed, on every host alike. Not if zzupdate bailed out, though: nothing got updated, a reboot
+  ## would only take the host down for nothing
+  if zzupdate server; then
 
     ## zzupdate has just pulled bash-fx: load it again. What this shell got at the top came from the LOCAL
     ## copy as it was before that (bash-fx.sh reads its scripts/ off /usr/local/turbolab.it when it's there),
