@@ -130,23 +130,37 @@ fi
 
 
 ##
+## "test" is server-list/test.txt. Several lists, comma-separated, make a single run: "test,prod" hands multissh
+## both files, comma-separated as well, and it works the hosts of test.txt, then the hosts of prod.txt
+##
 function checkServerListInput()
 {
-  if [ -z "${1}" ]; then
+  local SERVERLIST_NAMES SERVERLIST_NAME SERVERLIST_ONE_FILE
+  fxStringToArray SERVERLIST_NAMES "${1}" ","
+
+  if [ ${#SERVERLIST_NAMES[@]} = 0 ]; then
     fxCatastrophicError "Please provide an input: the serverlist to run the command against"
   fi
-  
-  SERVERLIST_FILE="${SCRIPT_DIR}server-list/${1}.txt"
-  if [ ! -f "${SERVERLIST_FILE}" ]; then
-    fxCatastrophicError "$SERVERLIST_FILE not found"
-  fi
 
-  ## a list holding nothing but comments makes multissh exit 0 having touched no host at
-  ## all: on a shared runbook that green "The End" reads as "done", so refuse it instead.
-  ## Same rule multissh applies: an entry is a line which is neither empty nor "#"-leading
-  if [ "$(grep -cve '^#' -e '^$' "${SERVERLIST_FILE}")" = "0" ]; then
-    fxCatastrophicError "##${SERVERLIST_FILE}## doesn't list any host!"
-  fi
+  SERVERLIST_FILE=
+
+  for SERVERLIST_NAME in "${SERVERLIST_NAMES[@]}"; do
+
+    SERVERLIST_ONE_FILE="${SCRIPT_DIR}server-list/${SERVERLIST_NAME}.txt"
+    if [ ! -f "${SERVERLIST_ONE_FILE}" ]; then
+      fxCatastrophicError "$SERVERLIST_ONE_FILE not found"
+    fi
+
+    ## a list holding nothing but comments makes multissh exit 0 having touched no host at
+    ## all: on a shared runbook that green "The End" reads as "done", so refuse it instead.
+    ## Same rule multissh applies: an entry is a line which is neither empty nor "#"-leading.
+    ## Every list on its own: an empty one would go unnoticed among the hosts of the others
+    if [ "$(grep -cve '^#' -e '^$' "${SERVERLIST_ONE_FILE}")" = "0" ]; then
+      fxCatastrophicError "##${SERVERLIST_ONE_FILE}## doesn't list any host!"
+    fi
+
+    SERVERLIST_FILE="${SERVERLIST_FILE}${SERVERLIST_FILE:+,}${SERVERLIST_ONE_FILE}"
+  done
 }
 
 ## "$1" must be passed on: a function doesn't inherit the positional args of its caller,
@@ -155,16 +169,23 @@ if [ "${AUTO_CHECK_SERVER_LIST_INPUT}" != "0" ]; then
   checkServerListInput "$1"
 fi
 
+## the same lists, one item each: for the confirmation below, and for any ops script
+## which goes through them on its own
+fxStringToArray SERVERLIST_FILES "${SERVERLIST_FILE}" ","
+
 
 ## a "prod" list fans out to every production host at once: make it a deliberate act.
 ## Matching on the file, not on "$1", so it holds even when the caller set SERVERLIST_FILE
 ## on its own. fxAskConfirmation reads /dev/tty and auto-proceeds when there's no terminal,
-## so cron is unaffected
-case "$(basename "${SERVERLIST_FILE}" .txt)" in
-  prod*)
-    fxAskConfirmation "🔥 ##${OPS_TASK}## is about to run on EVERY host of ##${SERVERLIST_FILE}##. Proceed? [Y/N]"
-    ;;
-esac
+## so cron is unaffected. Every prod* list asks on its own
+for SERVERLIST_ONE_FILE in "${SERVERLIST_FILES[@]}"; do
+
+  case "$(basename "${SERVERLIST_ONE_FILE}" .txt)" in
+    prod*)
+      fxAskConfirmation "🔥 ##${OPS_TASK}## is about to run on EVERY host of ##${SERVERLIST_ONE_FILE}##. Proceed? [Y/N]"
+      ;;
+  esac
+done
 
 
 if [ "${AUTO_EXEC}" != "0" ]; then

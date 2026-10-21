@@ -57,22 +57,23 @@ The local part is just a couple of lines: it sets `OPS_TASK` and sources `base.s
 | parameter | what it does |
 |-----------|--------------|
 | `OPS_TASK=<name>` | **Required.** Names the task, and picks the script to send to the remote hosts: this ops-center's own `remote/<name>-remote.sh` when there is one, else the one multissh provides. No default: `base.sh` stops when it's missing |
-| `AUTO_CHECK_SERVER_LIST_INPUT=0` | Don't turn the first argument into a server list. Set `SERVERLIST_FILE` yourself when you use this. *Default: read `server-list/$1.txt`, refusing a missing argument, a missing file, and a file with no host in it* |
+| `AUTO_CHECK_SERVER_LIST_INPUT=0` | Don't turn the first argument into a server list. Set `SERVERLIST_FILE` yourself when you use this. *Default: read `server-list/$1.txt` (`test,prod`: both lists, see [Direct execution](#direct-execution)), refusing a missing argument, a missing file, and a file with no host in it* |
 | `AUTO_EXEC=0` | Don't run the task on the hosts of the list. Handy to let `base.sh` resolve everything and then do your own thing with `REMOTE_SCRIPT`/`SERVERLIST_FILE`. *Default: run it* |
 | `AUTO_EXEC_ON_SELF=0` | Don't run the task on this very machine after the remote hosts. *Default: run it here too* |
-| `SERVERLIST_FILE=<path>` | The list to work on. Only meaningful together with `AUTO_CHECK_SERVER_LIST_INPUT=0`, `base.sh` overwrites it otherwise. A `prod*` list always asks for confirmation |
+| `SERVERLIST_FILE=<path>` | The list to work on, or several lists, comma-separated. Only meaningful together with `AUTO_CHECK_SERVER_LIST_INPUT=0`, `base.sh` overwrites it otherwise. A `prod*` list always asks for confirmation |
 | `OPS_POST_EXEC=<path>` | Script to run **here**, on the ops-center, once per host, right after the remote one is done on it. multissh hands it: login, host, serverlist, run-as, port. *Default: this ops-center's own `local/<name>-post-exec.sh` when there is one, else the one multissh provides, else no callback at all.* See [inventory.sh](https://github.com/TurboLabIt/multissh/blob/main/ops-center-template/inventory.sh), which uses one to fetch each report |
 
 And these are set **by** `base.sh`, so you can read them after the `source` line:
 
 | variable | what it holds |
 |----------|---------------|
-| `REMOTE_SCRIPT`   | Full path of the script which ran on the hosts |
-| `SERVERLIST_FILE` | Full path of the list which was used |
-| `SCRIPT_DIR`      | This ops-center directory, with its trailing slash |
-| `LOG_DIR`         | Where the logs are kept |
-| `OPS_POST_EXEC`   | Full path of the per-host callback, empty when there is none |
-| `OPS_EXIT_CODE`   | multissh's own exit code (unset when `AUTO_EXEC=0`) |
+| `REMOTE_SCRIPT`    | Full path of the script which ran on the hosts |
+| `SERVERLIST_FILE`  | Full path of the list which was used. Several lists: their paths, comma-separated |
+| `SERVERLIST_FILES` | The same paths as an array, one list per item |
+| `SCRIPT_DIR`       | This ops-center directory, with its trailing slash |
+| `LOG_DIR`          | Where the logs are kept |
+| `OPS_POST_EXEC`    | Full path of the per-host callback, empty when there is none |
+| `OPS_EXIT_CODE`    | multissh's own exit code (unset when `AUTO_EXEC=0`) |
 
 
 ## ⚠️ Don't edit the built-in scripts in place
@@ -100,7 +101,10 @@ If you don't want to use the TUI, you can run the scripts directly like this:
 /opt/turbolab.it/ops-center/test.sh test
 /opt/turbolab.it/ops-center/test.sh prod
 /opt/turbolab.it/ops-center/test.sh <my-custom-serverlist>
+/opt/turbolab.it/ops-center/test.sh test,prod
 ````
+
+Several lists, comma-separated with no spaces, make a single run: the hosts of the first list, then those of the second one, and so on, with one log and one exit code. Every list must exist and hold at least one host, or nothing runs at all, and each `prod*` list asks for confirmation on its own. A host listed in two of them gets the task twice.
 
 
 ## The `update` task reboots the hosts
@@ -116,7 +120,7 @@ Mind the order of your list: a jump host (`ProxyJump`) goes down 60 seconds afte
 
 1. **start**: an ordinary multissh run. On each host, `remote/malware-scan-remote.sh` updates bash-fx, wipes `/var/log/turbolab.it/malware-scan/`, downloads the latest `malware-scan.sh` in there and starts it in background. A few seconds per host: the scan outlives the SSH session. A host already scanning is left alone, and waited for
 2. **wait**: a check every 5 minutes, for 24 hours at most. One short SSH connection per host, as the SSH user (no sudo, no tty), through `remote/malware-scan-collect-remote.sh`, which only reads that folder. A host which fails to answer 3 checks in a row isn't waited for anymore
-3. **collect**: two reports in `/var/log/turbolab.it/ops-center/malware-scan/`, named after the list and the time:
+3. **collect**: two reports in `/var/log/turbolab.it/ops-center/malware-scan/`, named after the list (or lists: `test,prod_<date>.csv`) and the time:
    - `<list>_<date>.csv`: one row per host, where its scan stands and what it found
    - `<list>_<date>.log`: the whole output of every scan, one section per host
 
