@@ -78,10 +78,19 @@ INVENTORY_MYSQL_RAW=$(mysqld --version 2>/dev/null || mysql --version 2>/dev/nul
 INVENTORY_MYSQL_VERSION=$(echo "${INVENTORY_MYSQL_RAW}" | grep -oE '(Distrib|Ver) [0-9][^ ,]*' | tail -1 | sed -E 's/^(Distrib|Ver) //; s/^([0-9.]+(-MariaDB)?).*/\1/')
 addToReport 'mysql_version' "${INVENTORY_MYSQL_VERSION}"
 
-## PHP versions, i.e. "8.3, 8.4". The glob stays quiet on a host with no PHP at all.
+## PHP versions, i.e. "8.3.27, 8.4.14". The file names (php8.3, php8.4) stop at the minor
+## version, so every CLI binary is asked for its own. -n skips the php.ini files: with no
+## extension loaded, none can slow it down or print a startup warning. Ubuntu builds say
+## "8.1.2-1ubuntu2.27": the grep cuts the packaging tail, like for mysql above, and drops
+## any line which isn't a version at all. On a host with no PHP the glob stays as it is,
+## and running it fails into /dev/null.
 ## "sed -z" joins the lines: it swaps the newlines for ", " instead of splitting on a
 ## comma, so a value carrying one of its own can't turn into two entries
-INVENTORY_PHP_VERSIONS=$(ls /usr/bin/php* 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | sort -uV | sed -z 's/\n/, /g; s/, $//')
+INVENTORY_PHP_VERSIONS=$(
+  for INVENTORY_PHP_BIN in /usr/bin/php[0-9]*; do
+    "${INVENTORY_PHP_BIN}" -n -r 'echo PHP_VERSION, PHP_EOL;' < /dev/null 2>/dev/null
+  done | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+' | sort -uV | sed -z 's/\n/, /g; s/, $//'
+)
 addToReport 'php_versions' "${INVENTORY_PHP_VERSIONS}"
 
 ## which TurboLabIt stack is on board
