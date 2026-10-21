@@ -25,9 +25,9 @@ zzopsc
 
 1. pick `▶️ Choose the script to execute`
 2. select your script (do a test run with `test.sh`)
-3. select your serverlist (do a test run with `test.txt`)
+3. tick your serverlist(s) with Space, then press Enter (do a test run with `test`)
 
-This will execute the selected script on every instance of the selected serverlist.
+This will execute the selected script on every instance of the ticked serverlist(s), one list after the other.
 
 The first screen has two more entries:
 
@@ -104,7 +104,7 @@ If you don't want to use the TUI, you can run the scripts directly like this:
 /opt/turbolab.it/ops-center/test.sh test,prod
 ````
 
-Several lists, comma-separated with no spaces, make a single run: the hosts of the first list, then those of the second one, and so on, with one log and one exit code. Every list must exist and hold at least one host, or nothing runs at all, and each `prod*` list asks for confirmation on its own. A host listed in two of them gets the task twice.
+Several lists, comma-separated with no spaces, make a single run: the hosts of the first list, then those of the second one, and so on, with one log and one exit code. Every list must exist and hold at least one host, or nothing runs at all. When any of them is a `prod*` list, you're asked for confirmation once, as the very first thing. A host listed in two of them gets the task twice.
 
 
 ## The `update` task reboots the hosts

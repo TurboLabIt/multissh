@@ -177,15 +177,22 @@ fxStringToArray SERVERLIST_FILES "${SERVERLIST_FILE}" ","
 ## a "prod" list fans out to every production host at once: make it a deliberate act.
 ## Matching on the file, not on "$1", so it holds even when the caller set SERVERLIST_FILE
 ## on its own. fxAskConfirmation reads /dev/tty and auto-proceeds when there's no terminal,
-## so cron is unaffected. Every prod* list asks on its own
+## so cron is unaffected. Asked once, however many prod* lists there are, and not at all
+## when base.sh asked already, before the update
+SERVERLIST_PROD_FILES=
+
 for SERVERLIST_ONE_FILE in "${SERVERLIST_FILES[@]}"; do
 
   case "$(basename "${SERVERLIST_ONE_FILE}" .txt)" in
     prod*)
-      fxAskConfirmation "🔥 ##${OPS_TASK}## is about to run on EVERY host of ##${SERVERLIST_ONE_FILE}##. Proceed? [Y/N]"
+      SERVERLIST_PROD_FILES="${SERVERLIST_PROD_FILES}${SERVERLIST_PROD_FILES:+,}${SERVERLIST_ONE_FILE}"
       ;;
   esac
 done
+
+if [ ! -z "${SERVERLIST_PROD_FILES}" ] && [ "${OPS_PROD_CONFIRMED}" != "1" ]; then
+  fxAskConfirmation "🔥 ##${OPS_TASK}## is about to run on EVERY host of ##${SERVERLIST_PROD_FILES}##. Proceed? [Y/N]"
+fi
 
 
 if [ "${AUTO_EXEC}" != "0" ]; then

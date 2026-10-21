@@ -61,6 +61,30 @@ function opscMenu()
 
 
 ##
+## Same as opscMenu, with a box to tick on every entry: echoes back the tags of the ticked
+## ones, comma-separated. The exit code is dialog's own, so that an OK with nothing ticked
+## (0, nothing echoed) can be told apart from a cancel (not 0)
+##
+function opscChecklist()
+{
+  local MENU_TITLE="$1"
+  local MENU_PROMPT="$2"
+  shift 2
+
+  local CHECKED EXIT_CODE
+
+  ## --separate-output: one tag per line, without the quotes dialog puts around them otherwise
+  CHECKED=$(dialog --clear --backtitle "${OPSC_BACKTITLE}" --title "${MENU_TITLE}" --separate-output \
+    --checklist "${MENU_PROMPT}" ${OPSC_HEIGHT} ${OPSC_WIDTH} ${OPSC_CHOICE_HEIGHT} \
+    "$@" 2>&1 >/dev/tty)
+  EXIT_CODE=$?
+
+  echo "${CHECKED//$'\n'/,}"
+  return ${EXIT_CODE}
+}
+
+
+##
 ## The "## ..." line right under the shebang describes the task. By convention it opens
 ## with the action in capitals ("COLLECT AN INVENTORY of the instances of..."), which
 ## makes for a far better menu entry than the whole sentence cut off mid-word
@@ -159,9 +183,9 @@ fi
 
 
 ##
-## 3. against which server list
+## 3. against which server list(s)
 ##
-## Only *.txt: the task is handed the NAME of the list and appends ".txt" to it on its
+## Only *.txt: the task is handed the NAMES of the lists and appends ".txt" to each on its
 ## own, so nothing else could be run against anyway. ssh_config drops out right here
 ##
 OPSC_LIST_OPTIONS=()
@@ -171,7 +195,8 @@ while read -r OPSC_LIST_FILE <&3; do
   ## counted the way multissh reads the list, so this says what it will really do
   OPSC_LIST_COUNT=$(grep -cve '^#' -e '^$' "${OPSCENTER_LIST_DIR}${OPSC_LIST_FILE}")
 
-  OPSC_LIST_OPTIONS+=( "${OPSC_LIST_FILE%.txt}" "🎯  ${OPSC_LIST_COUNT} host(s)" )
+  ## "off": nothing is ticked to begin with
+  OPSC_LIST_OPTIONS+=( "${OPSC_LIST_FILE%.txt}" "🎯  ${OPSC_LIST_COUNT} host(s)" off )
 
 done 3< <(find "${OPSCENTER_LIST_DIR}" -maxdepth 1 -name '*.txt' -not -type d -printf '%f\n' | sort)
 
@@ -179,12 +204,27 @@ if [ ${#OPSC_LIST_OPTIONS[@]} -eq 0 ]; then
   fxCatastrophicError "No server list in ##${OPSCENTER_LIST_DIR}##!"
 fi
 
-OPSC_LIST=$(opscMenu "${OPSC_TASK}" "Which server list do you want to run it against?" "${OPSC_LIST_OPTIONS[@]}")
-clear
+## Several lists can be ticked: the task gets them comma-separated ("test,prod") and runs
+## on all of them in one go. Enter with nothing ticked is an easy slip, since Enter alone
+## picks the entry in the menus before this one: show it again and say what to do
+OPSC_LIST_PROMPT="Which server list(s) do you want to run it against?\n\nSpace ticks a list, Enter runs the task on the ticked ones"
 
-if [ -z "${OPSC_LIST}" ]; then
-  exit
-fi
+while true; do
+
+  OPSC_LIST=$(opscChecklist "${OPSC_TASK}" "${OPSC_LIST_PROMPT}" "${OPSC_LIST_OPTIONS[@]}")
+  OPSC_LIST_EXIT_CODE=$?
+  clear
+
+  if [ "${OPSC_LIST_EXIT_CODE}" != 0 ]; then
+    exit
+  fi
+
+  if [ ! -z "${OPSC_LIST}" ]; then
+    break
+  fi
+
+  OPSC_LIST_PROMPT="Nothing ticked!\n\nSpace ticks a list, Enter runs the task on the ticked ones"
+done
 
 
 ##

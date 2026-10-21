@@ -17,6 +17,17 @@ echo ""
 ## (the installer never overwrites an existing file in an ops-center).
 ##
 
+## The one exception: a "prod*" list fans out to every production host at once, and the
+## confirmation for it can't wait for the update below. Asked right away, the operator can
+## answer and walk away. The names on the command line are all there is to go by here:
+## base-run.sh checks the lists themselves, and asks on its own whenever nobody asked here
+if [ "${AUTO_CHECK_SERVER_LIST_INPUT}" != "0" ] && [[ ",${1}" == *,prod* ]] && [ -f "/usr/local/turbolab.it/bash-fx/bash-fx.sh" ]; then
+
+  source "/usr/local/turbolab.it/bash-fx/bash-fx.sh"
+  fxAskConfirmation "🔥 ##${OPS_TASK}## is about to run on EVERY host of ##${1}##. Proceed? [Y/N]"
+  OPS_PROD_CONFIRMED=1
+fi
+
 if [ -z "$(command -v curl)" ]; then sudo apt update && sudo apt install curl -y; fi
 
 ## multissh setup, which pulls bash-fx in first
