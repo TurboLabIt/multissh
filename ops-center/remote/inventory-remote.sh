@@ -62,6 +62,11 @@ addToReport 'hostname' "$(hostname)"
 addToReport 'os' "$(. /etc/os-release 2>/dev/null && echo "${ID}")"
 addToReport 'os_version' "$(. /etc/os-release 2>/dev/null && echo "${VERSION_ID}")"
 
+## Kernel release, i.e. "6.8.0-87-generic", kept whole: on Ubuntu and Debian the number
+## in the middle is the update, the only part which tells two hosts on "6.8.0" apart.
+## It's the RUNNING kernel: a newer one, installed but not booted yet, doesn't show up
+addToReport 'kernel' "$(uname -r)"
+
 ## SSH version
 addToReport 'ssh_version' "$(ssh -V 2>&1 | sed 's/ .*//')"
 
